@@ -6,9 +6,10 @@ function HomePage({ setCartItems }) {
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('Tất cả');
   const [maxPrice, setMaxPrice] = useState(1000000);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   const navigate = useNavigate();
 
-  // Fetch dữ liệu từ Google Sheets hoặc API khác
   useEffect(() => {
     fetch('https://script.google.com/macros/s/AKfycbxPXFW4qcR_lQfUzx_-pQ-H1gjxDf55i54v_KuB-_44ZuwKhRA8aZ9w96hjByMB5qME/exec')
       .then((res) => res.json())
@@ -36,8 +37,13 @@ function HomePage({ setCartItems }) {
     return matchCategory && matchPrice;
   });
 
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
   const handleAddToCart = (product, e) => {
-    e.stopPropagation(); // tránh chuyển trang khi bấm nút giỏ hàng
+    e.stopPropagation();
     setCartItems((prev) => {
       const exists = prev.find((item) => item.id === product.id);
       if (exists) {
@@ -56,7 +62,6 @@ function HomePage({ setCartItems }) {
 
   return (
     <div className="p-6 font-sans">
-      {/* Banner */}
       <div className="w-full mb-6">
         <img
           src="/img/banner.jpg"
@@ -65,7 +70,6 @@ function HomePage({ setCartItems }) {
         />
       </div>
 
-      {/* Bộ lọc */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
         <div>
           <label className="mr-2 font-semibold">Loại sản phẩm:</label>
@@ -95,13 +99,12 @@ function HomePage({ setCartItems }) {
         </div>
       </div>
 
-      {/* Danh sách sản phẩm */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredProducts.map((product) => (
+      <div className="flex flex-wrap justify-center px-[15%] gap-x-[4%] gap-y-8">
+        {paginatedProducts.map((product) => (
           <div
             key={product.id}
             onClick={() => handleCardClick(product.id)}
-            className="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer transition-transform hover:scale-[1.02]"
+            className="w-[30.66%] bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer transition-transform hover:scale-[1.02]"
           >
             <img
               src={product.image}
@@ -109,22 +112,16 @@ function HomePage({ setCartItems }) {
               className="w-full h-52 object-cover"
             />
             <div className="p-4 relative">
-              <h2 className="text-[16px] font-semibold text-gray-800">
-                {product.name}
-              </h2>
+              <h2 className="text-[16px] font-semibold text-gray-800">{product.name}</h2>
               <p className="text-[18px] font-bold text-gray-900 mt-1">
                 {product.price.toLocaleString()}₫
               </p>
-
-              {/* Sao + đã bán */}
               <div className="flex items-center justify-between mt-2 text-sm">
                 <div className="text-green-500">
                   {'★'.repeat(5)} <span className="text-gray-500 ml-1">({product.reviews})</span>
                 </div>
                 <span className="text-gray-500">Đã bán: {product.sold}</span>
               </div>
-
-              {/* Nút giỏ hàng */}
               <button
                 onClick={(e) => handleAddToCart(product, e)}
                 className="absolute bottom-4 right-4 bg-pink-100 text-pink-500 p-2 rounded-full hover:bg-pink-200"
@@ -133,6 +130,20 @@ function HomePage({ setCartItems }) {
               </button>
             </div>
           </div>
+        ))}
+      </div>
+
+      <div className="flex justify-center mt-8 gap-2">
+        {Array.from({ length: totalPages }, (_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentPage(i + 1)}
+            className={`px-3 py-1 border rounded ${
+              currentPage === i + 1 ? 'bg-green-700 text-white' : 'bg-white'
+            }`}
+          >
+            {i + 1}
+          </button>
         ))}
       </div>
     </div>
