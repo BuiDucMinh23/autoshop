@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import emailjs from 'emailjs-com';
 
 function CheckoutPage({ cartItems = [], clearCart }) {
   const navigate = useNavigate();
@@ -26,13 +27,40 @@ function CheckoutPage({ cartItems = [], clearCart }) {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
+  const formatCartItems = () => {
+    return cartItems
+      .map((item) => `${item.name} x${item.quantity} - ${item.price.toLocaleString()}₫`)
+      .join('\n');
+  };
   const handleCheckout = () => {
+    const templateParams = {
+      ...formData,
+      total: `${total.toLocaleString()}₫`,
+      items: formatCartItems(),
+      vatFee: vatFee,
+      productTotal: productTotal,
+      shippingFee: shippingFee,
+    };
+  // ✅ Gửi cho admin
+    emailjs.send(
+      'service_0537mic',     // 🔁 Thay bằng ID thực tế
+      'template_admin',      // 🔁 Template admin
+      templateParams,
+      'wduUp5Bce99TZguMa'         // 🔁 Public Key từ EmailJS dashboard
+    );
+
+    // ✅ Gửi cho khách hàng
+    emailjs.send(
+      'service_0537mic',
+      'template_customer',
+      templateParams,
+      'wduUp5Bce99TZguMa'
+    );
+
     alert(`Đơn hàng đã được đặt thành công!\nChúng tôi đã gửi email xác nhận tới ${formData.email}`);
     clearCart();
     navigate('/success');
   };
-
   return (
     <div className="p-6 grid grid-cols-1 md:grid-cols-10 gap-6">
       {/* Bên trái: Form nhập liệu 7 phần */}
