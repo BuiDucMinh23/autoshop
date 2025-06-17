@@ -59,7 +59,7 @@ function CheckoutPage({ cartItems = [], clearCart }) {
 
     alert(`Đơn hàng đã được đặt thành công!\nChúng tôi đã gửi email xác nhận tới ${formData.email}`);
     clearCart();
-    navigate('/success');
+    navigate('/ordersuccess');
   };
   return (
     <div className="p-6 grid grid-cols-1 md:grid-cols-10 gap-6">

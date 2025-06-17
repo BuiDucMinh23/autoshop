@@ -1,24 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
-import products from '../data/products';
 
 function HomePage({ setCartItems }) {
+  const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('Tất cả');
   const [maxPrice, setMaxPrice] = useState(1000000);
   const navigate = useNavigate();
 
+  // Fetch dữ liệu từ Google Sheets hoặc API khác
+  useEffect(() => {
+    fetch('https://script.google.com/macros/s/AKfycbxPXFW4qcR_lQfUzx_-pQ-H1gjxDf55i54v_KuB-_44ZuwKhRA8aZ9w96hjByMB5qME/exec')
+      .then((res) => res.json())
+      .then((data) => {
+        const mapped = data.map((item, index) => ({
+          id: item.id || index,
+          name: item.name,
+          price: Number(item.price),
+          image: item.image,
+          category: item.category,
+          reviews: Number(item.reviews || 0),
+          sold: Number(item.sold || 0),
+        }));
+        setProducts(mapped);
+      })
+      .catch((err) => console.error('Lỗi khi load sản phẩm:', err));
+  }, []);
+
   const categories = ['Tất cả', ...new Set(products.map((p) => p.category))];
 
   const filteredProducts = products.filter((product) => {
-    const matchesCategory =
+    const matchCategory =
       selectedCategory === 'Tất cả' || product.category === selectedCategory;
-    const matchesPrice = product.price <= maxPrice;
-    return matchesCategory && matchesPrice;
+    const matchPrice = product.price <= maxPrice;
+    return matchCategory && matchPrice;
   });
 
   const handleAddToCart = (product, e) => {
-    e.stopPropagation(); // Ngăn không cho chuyển trang khi bấm giỏ hàng
+    e.stopPropagation(); // tránh chuyển trang khi bấm nút giỏ hàng
     setCartItems((prev) => {
       const exists = prev.find((item) => item.id === product.id);
       if (exists) {
@@ -37,16 +56,16 @@ function HomePage({ setCartItems }) {
 
   return (
     <div className="p-6 font-sans">
-      {/* ✅ Banner */}
+      {/* Banner */}
       <div className="w-full mb-6">
         <img
           src="/img/banner.jpg"
           alt="Banner Sovera"
-          className="w-full h-80 object-cover rounded-xl shadow-md"
+          className="w-full h-90 object-cover rounded-xl shadow-md"
         />
       </div>
 
-      {/* ✅ Bộ lọc */}
+      {/* Bộ lọc */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
         <div>
           <label className="mr-2 font-semibold">Loại sản phẩm:</label>
@@ -76,7 +95,7 @@ function HomePage({ setCartItems }) {
         </div>
       </div>
 
-      {/* ✅ Danh sách sản phẩm */}
+      {/* Danh sách sản phẩm */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredProducts.map((product) => (
           <div
@@ -97,13 +116,15 @@ function HomePage({ setCartItems }) {
                 {product.price.toLocaleString()}₫
               </p>
 
-              {/* ⭐ Đánh giá sao */}
-              <div className="flex items-center mt-2 text-green-500 text-sm">
-                {'★'.repeat(5)}
-                <span className="ml-1 text-gray-500">({product.reviews || 120})</span>
+              {/* Sao + đã bán */}
+              <div className="flex items-center justify-between mt-2 text-sm">
+                <div className="text-green-500">
+                  {'★'.repeat(5)} <span className="text-gray-500 ml-1">({product.reviews})</span>
+                </div>
+                <span className="text-gray-500">Đã bán: {product.sold}</span>
               </div>
 
-              {/* 🛒 Nút giỏ hàng */}
+              {/* Nút giỏ hàng */}
               <button
                 onClick={(e) => handleAddToCart(product, e)}
                 className="absolute bottom-4 right-4 bg-pink-100 text-pink-500 p-2 rounded-full hover:bg-pink-200"

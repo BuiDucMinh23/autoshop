@@ -9,16 +9,19 @@ import { useState } from 'react';
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
-
+  const clearCart = () => {
+    setCartItems([]); // Xoá toàn bộ giỏ hàng
+  };
   return (
     <Router>
       <Header cartItems={cartItems} />
+
       <Routes>
         <Route path="/" element={<HomePage setCartItems={setCartItems} />} />
         <Route path="/product/:id" element={<ProductDetailPage setCartItems={setCartItems} />} />
         <Route path="/cart" element={<CartPage cartItems={cartItems} setCartItems={setCartItems} />} />
-        <Route path="/checkout" element={<CheckoutPage cartItems={cartItems} />} />
-        <Route path="/order-success" element={<OrderSuccessPage />} />
+        <Route path="/checkout" element={<CheckoutPage cartItems={cartItems} clearCart={clearCart} />} />
+        <Route path="/ordersuccess" element={<OrderSuccessPage />} />
       </Routes>
     </Router>
   );
